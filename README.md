@@ -113,10 +113,9 @@ pipenv requirements >> requirements.txt
 
 + The Demo Web page
 
-  + The index page as below
+  + The index page you can input some information
 
-
-  + The home page as below when you submit the information.
+  + The home page will show your information when you click submit in the index page.
 
 
 

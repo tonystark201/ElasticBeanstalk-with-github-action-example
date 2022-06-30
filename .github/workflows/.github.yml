@@ -1,0 +1,57 @@
+name: Deploy to Code to Elastic Beanstalk
+
+on:
+  push:
+    branches:
+      - release
+    tags:
+      - "*"
+  pull_request:
+    branches:
+      - main
+      - release
+  
+jobs:
+  ci:
+    name: Integration
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: "Lint code"
+        run: |
+          echo "Linting repository"
+      
+      - name: "Run unit tests"
+        run: |
+          echo "Running unit tests"
+  
+  cd:
+    name: Deployment
+    runs-on: ubuntu-latest
+    needs: ci
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        
+      - name: Generate deployment package
+        run: | 
+          cd server 
+          echo $(pwd)
+          zip -r deploy.zip ./
+          echo $(ls -l | grep deploy.zip)
+      
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{secrets.AWS_ACCESS_KEY_ID}}
+          aws-secret-access-key: ${{secrets.AWS_SECRET_ACCESS_KEY}}
+          aws-region: "us-east-1"
+        
+      - name: Upload file to S3
+        run: aws s3 cp ./server/deploy.zip s3://flask-eb-demo-bucket-123456
+        
+      - name: Update Application Version
+        run:  aws elasticbeanstalk update-environment --application-name flask-eb-demo --environment-name flask-eb-env --version-label flask-version-one
+      
